@@ -55,6 +55,14 @@ void evse_board_supportImpl::init() {
         last_pp_state = s;
     });
 
+    mod->serial.signal_error_flags.connect([this](int connector, ErrorFlags e) {
+        if (connector == 1 && e.contactor_error) {
+            auto err = mod->p_connector_1->error_factory->create_error("evse_board_support/MREC17EVSEContactorFault", "",
+                                                              "Contactor error. ");
+            mod->p_connector_1->raise_error(err);
+        }
+    });
+    
     mod->gpio.signal_stop_button_state.connect([this](int connector, bool state) {
         if (connector == 1 && (state != last_stop_button_state)) {
             types::evse_manager::StopTransactionRequest request;
@@ -64,6 +72,8 @@ void evse_board_supportImpl::init() {
             last_stop_button_state = state;
         }
     });
+
+  
 }
 
 void evse_board_supportImpl::ready() {
