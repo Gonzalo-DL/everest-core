@@ -60,6 +60,7 @@ void evse_board_supportImpl::init() {
             auto err = mod->p_connector_1->error_factory->create_error("evse_board_support/MREC17EVSEContactorFault", "",
                                                               "Contactor error. ");
             mod->p_connector_1->raise_error(err);
+            EVLOG_info << "[1] Contactor Error " << e.contactor_error;
         }
     });
     
