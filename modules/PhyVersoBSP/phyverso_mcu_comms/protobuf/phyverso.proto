@@ -157,6 +157,9 @@ message OpaqueData {
 
   // The connector or parking sensor.
   int32 connector = 5;
+
+  //Log message for everest info
+  repeated uint32 log = 6;
 }
 
 message RcdCommand {

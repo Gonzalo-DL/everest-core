@@ -205,6 +205,9 @@ bool evSerial::handle_OpaqueData_packet(uint8_t* buf, int len) {
     pb_istream_t istream = pb_istream_from_buffer(buf, len);
     if (!pb_decode(&istream, OpaqueData_fields, &data))
         return false;
+    if (data.log_count > 0) {
+        EVLOG_info << "MCU Log: " << data.log;
+    }
     EVLOG_debug << "Received chunk " << data.id << " " << data.chunks_total << " " << data.chunk_current << " "
                 << data.data_count;
 
