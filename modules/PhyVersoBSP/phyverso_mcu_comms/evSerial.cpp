@@ -208,7 +208,8 @@ bool evSerial::handle_OpaqueData_packet(uint8_t* buf, int len) {
         return false;
     
     if (opaque.which_payload ==  Opaque_opaque_data_logs_tag) {
-        EVLOG_info << "MCU Log: " << opaque.payload.opaque_data_logs.logs;
+        std::string s(opaque.payload.opaque_data_logs.logs, opaque.payload.opaque_data_logs.logs + 32);
+        EVLOG_info << "MCU Log: " << s;
         return true;
     }
     if (opaque.which_payload == Opaque_opaque_data_data_tag) {
