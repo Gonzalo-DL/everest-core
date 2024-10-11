@@ -141,8 +141,17 @@ message Temperature {
 }
 
 // Message for parking sensor data.
+message Opaque {
+  oneof payload {
+    // Parking sensor data
+    OpaqueData opaque_data_data = 1;
+    // Log data
+    OpaqueLogs opaque_data_logs = 2;
+  }
+}
+
 message OpaqueData {
-  // The data itself.
+  // The data itself
   repeated uint32 data = 1;
 
   // The id of the message - this allows the receiver to assemble chunks of the
@@ -157,9 +166,11 @@ message OpaqueData {
 
   // The connector or parking sensor.
   int32 connector = 5;
+}
 
-  //Log message for everest info
-  repeated uint32 log = 6;
+message OpaqueLogs {
+  // Log data
+  repeated uint32 logs = 1;
 }
 
 message RcdCommand {

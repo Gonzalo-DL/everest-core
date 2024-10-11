@@ -201,50 +201,56 @@ bool evSerial::handle_McuToEverest_packet(uint8_t* buf, int len) {
 }
 
 bool evSerial::handle_OpaqueData_packet(uint8_t* buf, int len) {
+    Opaque opaque = Opaque_init_default;
     OpaqueData data = OpaqueData_init_default;
     pb_istream_t istream = pb_istream_from_buffer(buf, len);
-    if (!pb_decode(&istream, OpaqueData_fields, &data))
+    if (!pb_decode(&istream, Opaque_fields, &opaque))
         return false;
-    if (data.log_count > 0) {
-        EVLOG_info << "MCU Log: " << data.log;
+    
+    if (opaque.which_payload ==  Opaque_opaque_data_logs_tag) {
+        EVLOG_info << "MCU Log: " << opaque.payload.opaque_data_logs.logs;
+        return true;
     }
-    EVLOG_debug << "Received chunk " << data.id << " " << data.chunks_total << " " << data.chunk_current << " "
-                << data.data_count;
+    if (opaque.which_payload == Opaque_opaque_data_data_tag) {
+        data = opaque.payload.opaque_data_data;
+        EVLOG_debug << "Received chunk " << data.id << " " << data.chunks_total << " " << data.chunk_current << " "
+                    << data.data_count;
 
-    // Lambda for updating OpaqueDataHandler - here just to simplify the return
-    // logic.
-    [this](const OpaqueData& data) {
-        auto iter = opaque_handlers.find(data.connector);
-        if (iter == opaque_handlers.end()) {
-            // The item does not exist - try to insert it.
-            try {
-                iter = opaque_handlers.emplace(data.connector, data).first;
-            } catch (...) {
-                // We can't do anything here - the chunk is ill formed and does
-                // not start with 0.
-                EVLOG_debug << "Stray chunk " << data.id << "; Ignoring";
-                return;
+        // Lambda for updating OpaqueDataHandler - here just to simplify the return
+        // logic.
+        [this](const OpaqueData& data) {
+            auto iter = opaque_handlers.find(data.connector);
+            if (iter == opaque_handlers.end()) {
+                // The item does not exist - try to insert it.
+                try {
+                    iter = opaque_handlers.emplace(data.connector, data).first;
+                } catch (...) {
+                    // We can't do anything here - the chunk is ill formed and does
+                    // not start with 0.
+                    EVLOG_debug << "Stray chunk " << data.id << "; Ignoring";
+                    return;
+                }
+            } else {
+                try {
+                    iter->second.insert(data);
+                } catch (...) {
+                    // We've failed to insert the data.. Drop the current buffer.
+                    EVLOG_debug << "Stray chunk " << data.id << "; Resetting";
+                    opaque_handlers.erase(iter);
+                    return;
+                }
             }
-        } else {
-            try {
-                iter->second.insert(data);
-            } catch (...) {
-                // We've failed to insert the data.. Drop the current buffer.
-                EVLOG_debug << "Stray chunk " << data.id << "; Resetting";
-                opaque_handlers.erase(iter);
+            if (!iter->second.is_complete())
                 return;
-            }
-        }
-        if (!iter->second.is_complete())
-            return;
 
-        const auto readings = iter->second.get_data();
-        EVLOG_debug << "Received sensor data with the size " << readings.size();
-        signal_opaque_data(iter->first, readings);
-        opaque_handlers.erase(iter);
-    }(data);
+            const auto readings = iter->second.get_data();
+            EVLOG_debug << "Received sensor data with the size " << readings.size();
+            signal_opaque_data(iter->first, readings);
+            opaque_handlers.erase(iter);
+        }(data);
 
-    return true;
+        return true;
+    }
 }
 
 void evSerial::cobs_decode(uint8_t* buf, int len) {

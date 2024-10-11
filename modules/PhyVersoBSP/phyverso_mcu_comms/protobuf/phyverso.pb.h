@@ -135,9 +135,8 @@ typedef struct _McuToEverest {
     int32_t connector; /* 0: None, 1: Connector 1, 2: Connector 2 */
 } McuToEverest;
 
-/* Message for parking sensor data. */
 typedef struct _OpaqueData {
-    /* The data itself. */
+    /* The data itself */
     pb_size_t data_count;
     uint16_t data[64];
     /* The id of the message - this allows the receiver to assemble chunks of the
@@ -149,10 +148,24 @@ typedef struct _OpaqueData {
     uint32_t chunk_current;
     /* The connector or parking sensor. */
     int32_t connector;
-    /* Log message for everest info */
-    pb_size_t log_count;
-    uint8_t log[32];
 } OpaqueData;
+
+typedef struct _OpaqueLogs {
+    /* Log data */
+    pb_size_t logs_count;
+    uint8_t logs[32];
+} OpaqueLogs;
+
+/* Message for parking sensor data. */
+typedef struct _Opaque {
+    pb_size_t which_payload;
+    union {
+        /* Parking sensor data */
+        OpaqueData opaque_data_data;
+        /* Log data */
+        OpaqueLogs opaque_data_logs;
+    } payload;
+} Opaque;
 
 typedef struct _RcdCommand {
     bool test; /* true -> set TEST pin high, false -> set TEST pin low */
@@ -231,6 +244,8 @@ extern "C" {
 
 
 
+
+
 /* Initializer values for message structs */
 #define EverestToMcu_init_default                {0, {KeepAlive_init_default}, 0}
 #define McuToEverest_init_default                {0, {KeepAlive_init_default}, 0}
@@ -243,7 +258,9 @@ extern "C" {
 #define BootConfigResponse_init_default          {_ConfigHardwareRevision_MIN, false, ConfigMotorLockType_init_default, false, ConfigMotorLockType_init_default}
 #define ConfigMotorLockType_init_default         {_MotorLockType_MIN}
 #define Temperature_init_default                 {0, {0, 0, 0, 0, 0, 0}}
-#define OpaqueData_init_default                  {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+#define Opaque_init_default                      {0, {OpaqueData_init_default}}
+#define OpaqueData_init_default                  {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0}
+#define OpaqueLogs_init_default                  {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 #define RcdCommand_init_default                  {0, 0}
 #define EverestToMcu_init_zero                   {0, {KeepAlive_init_zero}, 0}
 #define McuToEverest_init_zero                   {0, {KeepAlive_init_zero}, 0}
@@ -256,7 +273,9 @@ extern "C" {
 #define BootConfigResponse_init_zero             {_ConfigHardwareRevision_MIN, false, ConfigMotorLockType_init_zero, false, ConfigMotorLockType_init_zero}
 #define ConfigMotorLockType_init_zero            {_MotorLockType_MIN}
 #define Temperature_init_zero                    {0, {0, 0, 0, 0, 0, 0}}
-#define OpaqueData_init_zero                     {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+#define Opaque_init_zero                         {0, {OpaqueData_init_zero}}
+#define OpaqueData_init_zero                     {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0}
+#define OpaqueLogs_init_zero                     {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 #define RcdCommand_init_zero                     {0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -300,7 +319,9 @@ extern "C" {
 #define OpaqueData_chunks_total_tag              3
 #define OpaqueData_chunk_current_tag             4
 #define OpaqueData_connector_tag                 5
-#define OpaqueData_log_tag                       6
+#define OpaqueLogs_logs_tag                      1
+#define Opaque_opaque_data_data_tag              1
+#define Opaque_opaque_data_logs_tag              2
 #define RcdCommand_test_tag                      1
 #define RcdCommand_reset_tag                     2
 #define EverestToMcu_keep_alive_tag              1
@@ -419,15 +440,27 @@ X(a, STATIC,   REPEATED, UINT32,   temp,              1)
 #define Temperature_CALLBACK NULL
 #define Temperature_DEFAULT NULL
 
+#define Opaque_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,opaque_data_data,payload.opaque_data_data),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,opaque_data_logs,payload.opaque_data_logs),   2)
+#define Opaque_CALLBACK NULL
+#define Opaque_DEFAULT NULL
+#define Opaque_payload_opaque_data_data_MSGTYPE OpaqueData
+#define Opaque_payload_opaque_data_logs_MSGTYPE OpaqueLogs
+
 #define OpaqueData_FIELDLIST(X, a) \
 X(a, STATIC,   REPEATED, UINT32,   data,              1) \
 X(a, STATIC,   SINGULAR, UINT32,   id,                2) \
 X(a, STATIC,   SINGULAR, UINT32,   chunks_total,      3) \
 X(a, STATIC,   SINGULAR, UINT32,   chunk_current,     4) \
-X(a, STATIC,   SINGULAR, INT32,    connector,         5) \
-X(a, STATIC,   REPEATED, UINT32,   log,               6)
+X(a, STATIC,   SINGULAR, INT32,    connector,         5)
 #define OpaqueData_CALLBACK NULL
 #define OpaqueData_DEFAULT NULL
+
+#define OpaqueLogs_FIELDLIST(X, a) \
+X(a, STATIC,   REPEATED, UINT32,   logs,              1)
+#define OpaqueLogs_CALLBACK NULL
+#define OpaqueLogs_DEFAULT NULL
 
 #define RcdCommand_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, BOOL,     test,              1) \
@@ -446,7 +479,9 @@ extern const pb_msgdesc_t BootConfigRequest_msg;
 extern const pb_msgdesc_t BootConfigResponse_msg;
 extern const pb_msgdesc_t ConfigMotorLockType_msg;
 extern const pb_msgdesc_t Temperature_msg;
+extern const pb_msgdesc_t Opaque_msg;
 extern const pb_msgdesc_t OpaqueData_msg;
+extern const pb_msgdesc_t OpaqueLogs_msg;
 extern const pb_msgdesc_t RcdCommand_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
@@ -461,7 +496,9 @@ extern const pb_msgdesc_t RcdCommand_msg;
 #define BootConfigResponse_fields &BootConfigResponse_msg
 #define ConfigMotorLockType_fields &ConfigMotorLockType_msg
 #define Temperature_fields &Temperature_msg
+#define Opaque_fields &Opaque_msg
 #define OpaqueData_fields &OpaqueData_msg
+#define OpaqueLogs_fields &OpaqueLogs_msg
 #define RcdCommand_fields &RcdCommand_msg
 
 /* Maximum encoded size of messages (where known) */
@@ -474,8 +511,10 @@ extern const pb_msgdesc_t RcdCommand_msg;
 #define FanState_size                            15
 #define KeepAlive_size                           70
 #define McuToEverest_size                        83
-#define OpaqueData_size                          381
-#define PHYVERSO_PB_H_MAX_SIZE                   OpaqueData_size
+#define OpaqueData_size                          285
+#define OpaqueLogs_size                          96
+#define Opaque_size                              288
+#define PHYVERSO_PB_H_MAX_SIZE                   Opaque_size
 #define RcdCommand_size                          4
 #define Telemetry_size                           12
 #define Temperature_size                         24

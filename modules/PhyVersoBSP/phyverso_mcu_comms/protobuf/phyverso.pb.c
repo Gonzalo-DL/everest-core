@@ -39,7 +39,13 @@ PB_BIND(ConfigMotorLockType, ConfigMotorLockType, AUTO)
 PB_BIND(Temperature, Temperature, AUTO)
 
 
+PB_BIND(Opaque, Opaque, AUTO)
+
+
 PB_BIND(OpaqueData, OpaqueData, AUTO)
+
+
+PB_BIND(OpaqueLogs, OpaqueLogs, AUTO)
 
 
 PB_BIND(RcdCommand, RcdCommand, AUTO)
